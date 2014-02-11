@@ -10,6 +10,13 @@ ifeq ($(WPA_SUPPLICANT_VERSION),VER_0_8_X)
 # set up in the other Android.mk.
 include $(LOCAL_PATH)/hostapd/Android.mk \
         $(LOCAL_PATH)/wpa_supplicant/Android.mk
+
+# psw0523 add
+ifeq ($(BOARD_WIFI_VENDOR), realtek)
+include $(call all-subdir-makefiles)
+endif
+# end psw0523
+
 endif
 ifeq ($(WPA_SUPPLICANT_VERSION),VER_2_1_DEVEL)
 include $(call all-subdir-makefiles)

@@ -1637,7 +1637,7 @@ void wpa_supplicant_associate(struct wpa_supplicant *wpa_s,
 		((freq = wpa_drv_shared_freq(wpa_s)) > 0) && (freq != params.freq)) {
 		wpa_printf(MSG_DEBUG, "Shared interface with conflicting frequency found (%d != %d)"
 																, freq, params.freq);
-		if (wpas_p2p_handle_frequency_conflicts(wpa_s, params.freq, ssid) < 0) 
+		if (wpas_p2p_handle_frequency_conflicts(wpa_s, params.freq, ssid) < 0)
 			return;
 	}
 #endif
@@ -1800,7 +1800,7 @@ static void wpa_supplicant_enable_one_network(struct wpa_supplicant *wpa_s,
 	 * Try to reassociate since there is no current configuration and a new
 	 * network was made available.
 	 */
-	if (!wpa_s->current_ssid && !wpa_s->disconnected)
+	if (!wpa_s->current_ssid)
 		wpa_s->reassociate = 1;
 }
 
@@ -1821,7 +1821,7 @@ void wpa_supplicant_enable_network(struct wpa_supplicant *wpa_s,
 	} else
 		wpa_supplicant_enable_one_network(wpa_s, ssid);
 
-	if (wpa_s->reassociate && !wpa_s->disconnected) {
+	if (wpa_s->reassociate) {
 		if (wpa_s->sched_scanning) {
 			wpa_printf(MSG_DEBUG, "Stop ongoing sched_scan to add "
 				   "new network to scan filters");
@@ -2691,6 +2691,29 @@ void wpa_supplicant_apply_ht_overrides(
 #endif /* CONFIG_HT_OVERRIDES */
 
 
+#ifdef CONFIG_WFD
+void wfd_set_config_info2driver( struct wpa_supplicant* wpa_s )
+{
+	char		buf[ 256 ];
+
+	wpa_printf(MSG_DEBUG, "WFD: Set config info to driver");
+
+	memset( buf, 0x00, 256 );
+	sprintf( buf, "%d", wpa_s->conf->wfd_tcpport );
+	wpa_drv_driver_cmd(wpa_s,  "WFD-SET-TCPPORT", buf, sizeof(buf));
+
+	memset( buf, 0x00, 256 );
+	sprintf( buf, "%d", wpa_s->conf->wfd_max_throughput );
+	wpa_drv_driver_cmd(wpa_s,  "WFD-SET-MAXTPUT", buf, sizeof(buf));
+
+	memset( buf, 0x00, 256 );
+	sprintf( buf, "%d", wpa_s->conf->wfd_device_type );
+	wpa_drv_driver_cmd(wpa_s,  "WFD-SET-DEVTYPE", buf, sizeof(buf));
+
+}
+#endif // CONFIG_WFD
+
+
 #ifdef CONFIG_VHT_OVERRIDES
 void wpa_supplicant_apply_vht_overrides(
 	struct wpa_supplicant *wpa_s, struct wpa_ssid *ssid,
@@ -3059,6 +3082,10 @@ next_driver:
 		return -1;
 	}
 #endif /* CONFIG_P2P */
+
+#ifdef CONFIG_WFD
+	wfd_set_config_info2driver( wpa_s );
+#endif
 
 	if (wpa_bss_init(wpa_s) < 0)
 		return -1;

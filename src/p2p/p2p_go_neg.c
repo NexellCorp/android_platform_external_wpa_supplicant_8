@@ -13,6 +13,9 @@
 #include "wps/wps_defs.h"
 #include "p2p_i.h"
 #include "p2p.h"
+#ifdef CONFIG_WFD
+#include "../../wpa_supplicant/wpa_supplicant_i.h"
+#endif //CONFIG_WFD
 
 
 static int p2p_go_det(u8 own_intent, u8 peer_value)
@@ -525,12 +528,22 @@ void p2p_process_go_neg_req(struct p2p_data *p2p, const u8 *sa,
 	u8 status = P2P_SC_FAIL_INVALID_PARAMS;
 	int tie_breaker = 0;
 	int freq;
+#ifdef CONFIG_WFD
+	struct wpa_supplicant *wpa_s = (struct wpa_supplicant *)p2p->cfg->cb_ctx;
+#endif //CONFIG_WFD
 
 	p2p_dbg(p2p, "Received GO Negotiation Request from " MACSTR "(freq=%d)",
 		MAC2STR(sa), rx_freq);
 
 	if (p2p_parse(data, len, &msg))
 		return;
+
+#ifdef CONFIG_WFD
+	wpa_s->wfd_enable = msg.wfd_enable;
+	wpa_s->session_avail = msg.session_avail;
+	wpa_s->rtsp_ctrlport = msg.rtsp_ctrlport;
+	wpa_s->wfd_device_type = msg.wfd_device_type;
+#endif //CONFIG_WFD
 
 	if (!msg.capability) {
 		p2p_dbg(p2p, "Mandatory Capability attribute missing from GO Negotiation Request");

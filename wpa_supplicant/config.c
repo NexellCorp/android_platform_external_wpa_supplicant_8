@@ -3137,6 +3137,11 @@ static const struct global_parse_data global_fields[] = {
 	{ INT(p2p_disabled), 0 },
 	{ INT(p2p_no_group_iface), 0 },
 	{ INT_RANGE(p2p_ignore_shared_freq, 0, 1), 0 },
+#ifdef CONFIG_WFD
+	{ INT(wfd_tcpport), 554 },
+	{ INT(wfd_max_throughput), 300 },
+	{ INT(wfd_device_type), 1 },
+#endif
 #endif /* CONFIG_P2P */
 	{ FUNC(country), CFG_CHANGED_COUNTRY },
 	{ INT(bss_max_count), 0 },
@@ -3172,7 +3177,6 @@ static const struct global_parse_data global_fields[] = {
 	{ FUNC(freq_list), 0 },
 	{ INT(scan_cur_freq), 0 },
 	{ INT(sched_scan_interval), 0 },
-	{ INT(tdls_external_control), 0},
 };
 
 #undef FUNC

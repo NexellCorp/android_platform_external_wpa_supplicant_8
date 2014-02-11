@@ -60,7 +60,7 @@
  * How many seconds to wait for initial 4-way handshake to get completed after
  * WPS provisioning step.
  */
-#define P2P_MAX_INITIAL_CONN_WAIT 10
+#define P2P_MAX_INITIAL_CONN_WAIT 20
 #endif /* P2P_MAX_INITIAL_CONN_WAIT */
 
 #ifndef P2P_MAX_INITIAL_CONN_WAIT_GO
@@ -3820,7 +3820,7 @@ static void wpas_p2p_join_scan_req(struct wpa_supplicant *wpa_s, int freq)
 	 */
 	if(!freq) {
 		freq = (oper_freq = p2p_get_oper_freq(wpa_s->global->p2p,
-			 wpa_s->pending_join_iface_addr) == -1) ? 0 : oper_freq; 
+			 wpa_s->pending_join_iface_addr) == -1) ? 0 : oper_freq;
 	}
 #endif
 	os_memset(&params, 0, sizeof(params));
@@ -4103,7 +4103,9 @@ int wpas_p2p_connect(struct wpa_supplicant *wpa_s, const u8 *peer_addr,
 	os_free(wpa_s->global->add_psk);
 	wpa_s->global->add_psk = NULL;
 
+#ifndef REALTEK_WIFI_VENDOR
 	if (go_intent < 0)
+#endif
 		go_intent = wpa_s->conf->p2p_go_intent;
 
 	if (!auth)
@@ -5403,6 +5405,27 @@ static void wpas_p2p_set_group_idle_timeout(struct wpa_supplicant *wpa_s)
 		return;
 	}
 
+#ifdef REALTEK_WIFI_VENDOR
+
+	timeout = P2P_MAX_CLIENT_IDLE;
+
+	if (wpa_s->current_ssid->mode == WPAS_MODE_INFRA)
+	{
+		if (wpa_s->show_group_started) {
+			wpa_printf(MSG_INFO, "P2P: set P2P group idle timeout to 20s "
+			   "while waiting for initial 4-way handshake to "
+			   "complete");
+
+			timeout = P2P_MAX_CLIENT_IDLE;
+		}
+		else
+		{
+			timeout = 0;
+		}
+	}
+
+#else //REALTEK_WIFI_VENDOR
+#ifndef ANDROID_P2P
 	if (wpa_s->show_group_started) {
 		/*
 		 * Use the normal group formation timeout between the end of
@@ -5415,6 +5438,8 @@ static void wpas_p2p_set_group_idle_timeout(struct wpa_supplicant *wpa_s)
 			   "complete");
 		return;
 	}
+#endif
+#endif // REALTEK_WIFI_VENDOR
 
 	wpa_printf(MSG_DEBUG, "P2P: Set P2P group idle timeout to %u seconds",
 		   timeout);

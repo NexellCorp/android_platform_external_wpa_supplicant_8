@@ -655,6 +655,13 @@ struct wpa_supplicant {
 	struct wpa_ssid *p2p_last_4way_hs_fail;
 #endif /* CONFIG_P2P */
 
+#ifdef CONFIG_WFD
+	u8 wfd_enable;
+	u8 session_avail;
+	u16 rtsp_ctrlport;
+	u8 wfd_device_type;
+#endif //CONFIG_WFD
+
 	struct wpa_ssid *bgscan_ssid;
 	const struct bgscan_ops *bgscan;
 	void *bgscan_priv;

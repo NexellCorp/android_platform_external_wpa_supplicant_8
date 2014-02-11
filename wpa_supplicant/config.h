@@ -782,6 +782,12 @@ struct wpa_config {
 	 */
 	int auto_interworking;
 
+#ifdef CONFIG_WFD
+	int wfd_tcpport;
+	int wfd_max_throughput;
+	int wfd_device_type;
+#endif
+
 	/**
 	 * p2p_go_ht40 - Default mode for HT40 enable when operating as GO.
 	 *
@@ -876,17 +882,6 @@ struct wpa_config {
 	 * sched_scan_interval -  schedule scan interval
 	 */
 	unsigned int sched_scan_interval;
-
-	/**
-	 * tdls_external_control - External control for TDLS setup requests
-	 *
-	 * Enable TDLS mode where external programs are given the control
-	 * to specify the TDLS link to get established to the driver. The
-	 * driver requests the TDLS setup to the supplicant only for the
-	 * specified TDLS peers.
-	 *
-	 */
-	int tdls_external_control;
 };
 
 

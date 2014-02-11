@@ -13,7 +13,7 @@
 #include <stddef.h>
 #include <unistd.h>
 #include <fcntl.h>
-#ifdef ANDROID
+#if defined(ANDROID) && !defined(PURE_LINUX)
 #include <cutils/sockets.h>
 #endif /* ANDROID */
 
@@ -304,7 +304,7 @@ wpa_supplicant_ctrl_iface_init(struct wpa_supplicant *wpa_s)
 	buf = os_strdup(wpa_s->conf->ctrl_interface);
 	if (buf == NULL)
 		goto fail;
-#ifdef ANDROID
+#if defined(ANDROID) && !defined(PURE_LINUX)
 	os_snprintf(addr.sun_path, sizeof(addr.sun_path), "wpa_%s",
 		    wpa_s->conf->ctrl_interface);
 	priv->sock = android_get_control_socket(addr.sun_path);
@@ -453,7 +453,7 @@ wpa_supplicant_ctrl_iface_init(struct wpa_supplicant *wpa_s)
 	}
 	os_free(fname);
 
-#ifdef ANDROID
+#if defined(ANDROID) && !defined(PURE_LINUX)
 havesock:
 #endif /* ANDROID */
 
@@ -746,7 +746,7 @@ wpa_supplicant_global_ctrl_iface_init(struct wpa_global *global)
 
 	wpa_printf(MSG_DEBUG, "Global control interface '%s'", ctrl);
 
-#ifdef ANDROID
+#if defined(ANDROID) && !defined(PURE_LINUX)
 	if (os_strncmp(ctrl, "@android:", 9) == 0) {
 		priv->sock = android_get_control_socket(ctrl + 9);
 		if (priv->sock < 0) {
@@ -879,7 +879,9 @@ wpa_supplicant_global_ctrl_iface_init(struct wpa_global *global)
 		chmod(ctrl, S_IRWXU);
 	}
 
+#if defined(ANDROID) && !defined(PURE_LINUX)
 havesock:
+#endif
 
 	/*
 	 * Make socket non-blocking so that we don't hang forever if
