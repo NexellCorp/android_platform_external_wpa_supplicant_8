@@ -178,7 +178,7 @@ static int set_disallow_aps(struct wpa_supplicant *wpa_s, char *val)
 	struct wpa_ssid *c;
 
 	/*
-	 * disallow_list ::= <ssid_spec> | <bssid_spec> | <disallow_list> | “”
+	 * disallow_list ::= <ssid_spec> | <bssid_spec> | <disallow_list> | ?
 	 * SSID_SPEC ::= ssid <SSID_HEX>
 	 * BSSID_SPEC ::= bssid <BSSID_HEX>
 	 */
@@ -4424,13 +4424,6 @@ static int p2p_ctrl_set(struct wpa_supplicant *wpa_s, char *cmd)
 					      atoi(param));
 	}
 
-#ifdef REALTEK_WIFI_VENDOR
-	if (os_strcmp(cmd, "go_intent") == 0) {
-		wpa_s->conf->p2p_go_intent = atoi(param);
-		return 0;
-	}
-#endif
-
 	if (os_strcmp(cmd, "ssid_postfix") == 0) {
 		return p2p_set_ssid_postfix(wpa_s->global->p2p, (u8 *) param,
 					    os_strlen(param));
@@ -5234,6 +5227,11 @@ char * wpa_supplicant_ctrl_iface_process(struct wpa_supplicant *wpa_s,
 	const int reply_size = 4096;
 	int ctrl_rsp = 0;
 	int reply_len;
+
+#ifdef REALTEK_WIFI_VENDOR
+	if(os_strncmp(buf, "PING", 4) != 0)
+		wpa_printf(MSG_INFO, "[CTRL_IFACE]%s: %s", wpa_s->ifname, buf);
+#endif
 
 	if (os_strncmp(buf, WPA_CTRL_RSP, os_strlen(WPA_CTRL_RSP)) == 0 ||
 	    os_strncmp(buf, "SET_NETWORK ", 12) == 0 ||
@@ -6203,6 +6201,11 @@ char * wpa_supplicant_global_ctrl_iface_process(struct wpa_global *global,
 	reply = wpas_global_ctrl_iface_redir(global, buf, resp_len);
 	if (reply)
 		return reply;
+
+#ifdef REALTEK_WIFI_VENDOR
+	if(os_strncmp(buf, "PING", 4) != 0)
+		wpa_printf(MSG_INFO, "[CTRL_IFACE_G]%s", buf);
+#endif
 
 	if (os_strcmp(buf, "PING") == 0)
 		level = MSG_EXCESSIVE;

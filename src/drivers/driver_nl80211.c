@@ -3179,15 +3179,11 @@ static int wiphy_info_handler(struct nl_msg *msg, void *arg)
 	wiphy_info_iface_comb(info, tb[NL80211_ATTR_INTERFACE_COMBINATIONS]);
 	wiphy_info_supp_cmds(info, tb[NL80211_ATTR_SUPPORTED_COMMANDS]);
 
-#ifndef REALTEK_WIFI_VENDOR
 	if (tb[NL80211_ATTR_OFFCHANNEL_TX_OK]) {
 		wpa_printf(MSG_DEBUG, "nl80211: Using driver-based "
 			   "off-channel TX");
 		capa->flags |= WPA_DRIVER_FLAGS_OFFCHANNEL_TX;
 	}
-#else
-    wpa_printf(MSG_INFO, "nl80211: no Using driver-based off-channel TX");
-#endif
 
 	if (tb[NL80211_ATTR_ROAM_SUPPORT]) {
 		wpa_printf(MSG_DEBUG, "nl80211: Using driver-based roaming");
@@ -3203,9 +3199,7 @@ static int wiphy_info_handler(struct nl_msg *msg, void *arg)
 	wiphy_info_tdls(capa, tb[NL80211_ATTR_TDLS_SUPPORT],
 			tb[NL80211_ATTR_TDLS_EXTERNAL_SETUP]);
 
-#ifndef REALTEK_WIFI_VENDOR
 	if (tb[NL80211_ATTR_DEVICE_AP_SME])
-#endif
 		info->device_ap_sme = 1;
 
 	wiphy_info_feature_flags(info, tb[NL80211_ATTR_FEATURE_FLAGS]);
@@ -3382,6 +3376,7 @@ static int wpa_driver_nl80211_capa(struct wpa_driver_nl80211_data *drv)
 	return 0;
 }
 
+
 #if defined(ANDROID) && !defined(PURE_LINUX)
 static int android_genl_ctrl_resolve(struct nl_handle *handle,
 				     const char *name)
@@ -3415,7 +3410,7 @@ fail:
 	return id;
 }
 #define genl_ctrl_resolve android_genl_ctrl_resolve
-#endif /* ANDROID */
+#endif /* defined(ANDROID) && !defined(PURE_LINUX) */
 
 
 static int wpa_driver_nl80211_init_nl_global(struct nl80211_global *global)
@@ -4237,7 +4232,7 @@ static void wpa_driver_nl80211_scan_timeout(void *eloop_ctx, void *timeout_ctx)
 					    drv->ap_scan_as_station);
 		drv->ap_scan_as_station = NL80211_IFTYPE_UNSPECIFIED;
 	}
-	wpa_printf(MSG_INFO, "Scan timeout - try to get results");
+	wpa_printf(MSG_DEBUG, "Scan timeout - try to get results");
 	wpa_supplicant_event(timeout_ctx, EVENT_SCAN_RESULTS, NULL);
 }
 
@@ -4327,8 +4322,6 @@ static int wpa_driver_nl80211_scan(struct i802_bss *bss,
 	struct nl_msg *msg = NULL;
 
 	wpa_dbg(drv->ctx, MSG_DEBUG, "nl80211: scan request");
-    // psw0523 debug
-    wpa_printf(MSG_INFO, "nl80211: scan request");
 	drv->scan_for_auth = 0;
 
 	msg = nl80211_scan_common(drv, NL80211_CMD_TRIGGER_SCAN, params,
@@ -4339,9 +4332,7 @@ static int wpa_driver_nl80211_scan(struct i802_bss *bss,
 	if (params->p2p_probe) {
 		struct nlattr *rates;
 
-        // psw0523 debug
-		/*wpa_printf(MSG_DEBUG, "nl80211: P2P probe - mask SuppRates");*/
-		wpa_printf(MSG_INFO, "nl80211: P2P probe - mask SuppRates");
+		wpa_printf(MSG_DEBUG, "nl80211: P2P probe - mask SuppRates");
 
 		rates = nla_nest_start(msg, NL80211_ATTR_SCAN_SUPP_RATES);
 		if (rates == NULL)
@@ -4363,7 +4354,7 @@ static int wpa_driver_nl80211_scan(struct i802_bss *bss,
 	ret = send_and_recv_msgs(drv, msg, NULL, NULL);
 	msg = NULL;
 	if (ret) {
-		wpa_printf(MSG_ERROR, "nl80211: Scan trigger failed: ret=%d "
+		wpa_printf(MSG_DEBUG, "nl80211: Scan trigger failed: ret=%d "
 			   "(%s)", ret, strerror(-ret));
 #ifdef HOSTAPD
 		if (is_ap_interface(drv->nlmode)) {
@@ -4401,7 +4392,7 @@ static int wpa_driver_nl80211_scan(struct i802_bss *bss,
 		 */
 		timeout = 30;
 	}
-	wpa_printf(MSG_INFO, "Scan requested (ret=%d) - scan timeout %d "
+	wpa_printf(MSG_DEBUG, "Scan requested (ret=%d) - scan timeout %d "
 		   "seconds", ret, timeout);
 	eloop_cancel_timeout(wpa_driver_nl80211_scan_timeout, drv, drv->ctx);
 	eloop_register_timeout(timeout, 0, wpa_driver_nl80211_scan_timeout,
@@ -4849,12 +4840,12 @@ nl80211_get_scan_results(struct wpa_driver_nl80211_data *drv)
 	ret = send_and_recv_msgs(drv, msg, bss_info_handler, &arg);
 	msg = NULL;
 	if (ret == 0) {
-		wpa_printf(MSG_INFO, "nl80211: Received scan results (%lu "
+		wpa_printf(MSG_DEBUG, "nl80211: Received scan results (%lu "
 			   "BSSes)", (unsigned long) res->num);
 		nl80211_get_noise_for_scan_results(drv, res);
 		return res;
 	}
-	wpa_printf(MSG_INFO, "nl80211: Scan result fetch failed: ret=%d "
+	wpa_printf(MSG_DEBUG, "nl80211: Scan result fetch failed: ret=%d "
 		   "(%s)", ret, strerror(-ret));
 nla_put_failure:
 	nlmsg_free(msg);
@@ -9870,6 +9861,9 @@ static int nl80211_set_param(void *priv, const char *param)
 		return 0;
 
 #ifdef CONFIG_P2P
+#ifndef CONFIG_IGNORE_P2P_GROUP_INTERFACE
+		// RTK doesn't support  "driver_param=use_p2p_group_interface=1" option, 
+		// ignore this setting and still use p2p0 as p2p interface.
 	if (os_strstr(param, "use_p2p_group_interface=1")) {
 		struct i802_bss *bss = priv;
 		struct wpa_driver_nl80211_data *drv = bss->drv;
@@ -9879,7 +9873,7 @@ static int nl80211_set_param(void *priv, const char *param)
 		drv->capa.flags |= WPA_DRIVER_FLAGS_P2P_CONCURRENT;
 		drv->capa.flags |= WPA_DRIVER_FLAGS_P2P_MGMT_AND_NON_P2P;
 	}
-
+#endif
 	if (os_strstr(param, "p2p_device=1")) {
 		struct i802_bss *bss = priv;
 		struct wpa_driver_nl80211_data *drv = bss->drv;

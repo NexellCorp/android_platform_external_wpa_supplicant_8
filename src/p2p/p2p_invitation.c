@@ -22,6 +22,7 @@ static struct wpabuf * p2p_build_invitation_req(struct p2p_data *p2p,
 	u8 *len;
 	const u8 *dev_addr;
 	size_t extra = 0;
+	static u8 diatkn_inc = 0;
 
 #ifdef CONFIG_WIFI_DISPLAY
 	struct wpabuf *wfd_ie = p2p->wfd_ie_invitation;
@@ -48,7 +49,8 @@ static struct wpabuf * p2p_build_invitation_req(struct p2p_data *p2p,
 	if (buf == NULL)
 		return NULL;
 
-	peer->dialog_token++;
+	if  (!(diatkn_inc++ % 2))
+		peer->dialog_token++;
 	if (peer->dialog_token == 0)
 		peer->dialog_token = 1;
 	p2p_buf_add_public_action_hdr(buf, P2P_INVITATION_REQ,
@@ -193,6 +195,11 @@ void p2p_process_invitation_req(struct p2p_data *p2p, const u8 *sa,
 			goto fail;
 		}
 	}
+#ifdef REALTEK_WIFI_VENDOR
+	else {
+		p2p_add_dev_info(p2p, sa, dev, &msg);
+	}
+#endif
 
 	if (!msg.group_id || !msg.channel_list) {
 		p2p_dbg(p2p, "Mandatory attribute missing in Invitation Request from "

@@ -782,12 +782,6 @@ struct wpa_config {
 	 */
 	int auto_interworking;
 
-#ifdef CONFIG_WFD
-	int wfd_tcpport;
-	int wfd_max_throughput;
-	int wfd_device_type;
-#endif
-
 	/**
 	 * p2p_go_ht40 - Default mode for HT40 enable when operating as GO.
 	 *

@@ -228,10 +228,6 @@ static struct wpabuf * p2p_group_build_beacon_ie(struct p2p_group *group)
 	p2p_group_add_noa(ie, group->noa);
 	p2p_buf_update_ie_hdr(ie, len);
 
-#ifdef CONFIG_WFD
-	/* WFD IE */
-	p2p_buf_add_wfd_ie(ie);
-#endif
 	return ie;
 }
 
@@ -439,11 +435,6 @@ static struct wpabuf * p2p_group_build_probe_resp_ie(struct p2p_group *group)
 	}
 #endif /* CONFIG_WIFI_DISPLAY */
 
-#ifdef CONFIG_WFD
-	/* WFD IE */
-	p2p_buf_add_wfd_ie(ie);
-#endif
-
 	return ie;
 }
 
@@ -642,11 +633,6 @@ struct wpabuf * p2p_group_assoc_resp_ie(struct p2p_group *group, u8 status)
 	if (status != P2P_SC_SUCCESS)
 		p2p_buf_add_status(resp, status);
 	p2p_buf_update_ie_hdr(resp, rlen);
-
-#ifdef CONFIG_WFD
-	/* WFD IE */
-	p2p_buf_add_wfd_ie(resp);
-#endif
 
 	return resp;
 }

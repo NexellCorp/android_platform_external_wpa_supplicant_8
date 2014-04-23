@@ -21,6 +21,7 @@ CFLAGS += -I../src/utils
 CFLAGS += -I../src/drivers
 
 CFLAGS += -DANDROID -DANDROID_P2P -DREALTEK_WIFI_VENDOR
+CFLAGS += -DCONFIG_IGNORE_P2P_GROUP_INTERFACE
 
 -include .config
 
@@ -39,7 +40,6 @@ ALL += systemd/wpa_supplicant-wired@.service
 ALL += dbus/fi.epitest.hostap.WPASupplicant.service
 ALL += dbus/fi.w1.wpa_supplicant1.service
 endif
-
 
 all: verify_config $(ALL) dynamic_eap_methods
 

@@ -23,7 +23,7 @@
 #include "common/ieee802_11_defs.h"
 #if defined(ANDROID) && !defined(PURE_LINUX)
 #include <cutils/properties.h>
-#endif /* ANDROID */
+#endif /* defined(ANDROID) && !defined(PURE_LINUX) */
 
 
 static const char *wpa_cli_version =
@@ -3611,7 +3611,7 @@ static char * wpa_cli_get_default_ifname(void)
 			printf("Using interface '%s'\n", ifname);
 			return ifname;
 		}
-#endif /* ANDROID */
+#endif /* defined(ANDROID) && !defined(PURE_LINUX) */
 		return NULL;
 	}
 	while ((dent = readdir(dir))) {
