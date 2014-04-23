@@ -11,7 +11,9 @@
 #include <time.h>
 
 #ifdef ANDROID
+#if !defined(PURE_LINUX)
 #include <sys/capability.h>
+#endif /* !defined(PURE_LINUX) */
 #include <linux/prctl.h>
 #if !defined(PURE_LINUX)
 #include <private/android_filesystem_config.h>
@@ -283,7 +285,7 @@ int os_program_init(void)
 		(1 << CAP_NET_ADMIN) | (1 << CAP_NET_RAW);
 	cap.inheritable = 0;
 	capset(&header, &cap);
-#endif /* ANDROID */
+#endif /* defined(ANDROID) && !defined(PURE_LINUX) */
 
 #ifdef WPA_TRACE
 	dl_list_init(&alloc_list);

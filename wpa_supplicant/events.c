@@ -1168,7 +1168,7 @@ static int _wpa_supplicant_event_scan_results(struct wpa_supplicant *wpa_s,
 	    !wpa_s->scan_res_handler) {
 		wpa_s->global->p2p_cb_on_scan_complete = 0;
 		if (p2p_other_scan_completed(wpa_s->global->p2p) == 1) {
-			wpa_dbg(wpa_s, MSG_INFO, "P2P: Pending P2P operation "
+			wpa_dbg(wpa_s, MSG_DEBUG, "P2P: Pending P2P operation "
 				"stopped scan processing");
 			wpa_s->sta_scan_pending = 1;
 			wpa_supplicant_req_scan(wpa_s, 5, 0);
@@ -1193,8 +1193,6 @@ static int _wpa_supplicant_event_scan_results(struct wpa_supplicant *wpa_s,
 		return -1;
 	}
 
-    wpa_printf(MSG_INFO, "%s: scan_res %p", __func__, scan_res);
-
 #ifndef CONFIG_NO_RANDOM_POOL
 	num = scan_res->num;
 	if (num > 10)
@@ -1212,7 +1210,6 @@ static int _wpa_supplicant_event_scan_results(struct wpa_supplicant *wpa_s,
 #endif /* CONFIG_NO_RANDOM_POOL */
 
 	if (own_request && wpa_s->scan_res_handler) {
-        wpa_printf(MSG_INFO, "%s: scan_res_handler %p", __func__, wpa_s->scan_res_handler);
 		void (*scan_res_handler)(struct wpa_supplicant *wpa_s,
 					 struct wpa_scan_results *scan_res);
 
@@ -1225,7 +1222,7 @@ static int _wpa_supplicant_event_scan_results(struct wpa_supplicant *wpa_s,
 	}
 
 	if (ap) {
-		wpa_dbg(wpa_s, MSG_INFO, "Ignore scan results in AP mode");
+		wpa_dbg(wpa_s, MSG_DEBUG, "Ignore scan results in AP mode");
 #ifdef CONFIG_AP
 		if (wpa_s->ap_iface->scan_cb)
 			wpa_s->ap_iface->scan_cb(wpa_s->ap_iface);
@@ -1234,32 +1231,28 @@ static int _wpa_supplicant_event_scan_results(struct wpa_supplicant *wpa_s,
 		return 0;
 	}
 
-    wpa_printf(MSG_INFO, "New scan results available");
+	wpa_dbg(wpa_s, MSG_DEBUG, "New scan results available");
 	wpa_msg_ctrl(wpa_s, MSG_INFO, WPA_EVENT_SCAN_RESULTS);
 	wpas_notify_scan_results(wpa_s);
 
 	wpas_notify_scan_done(wpa_s, 1);
 
 	if (sme_proc_obss_scan(wpa_s) > 0) {
-        wpa_printf(MSG_INFO, "sme_proc_obss_scan()...");
 		wpa_scan_results_free(scan_res);
 		return 0;
 	}
 
 	if ((wpa_s->conf->ap_scan == 2 && !wpas_wps_searching(wpa_s))) {
-        wpa_printf(MSG_INFO, "ap_scan==2 ...");
 		wpa_scan_results_free(scan_res);
 		return 0;
 	}
 
 	if (autoscan_notify_scan(wpa_s, scan_res)) {
-        wpa_printf(MSG_INFO, "autoscan_notify_scan()...");
 		wpa_scan_results_free(scan_res);
 		return 0;
 	}
 
 	if (wpa_s->disconnected) {
-        wpa_printf(MSG_INFO, "disconnected...");
 		wpa_supplicant_set_state(wpa_s, WPA_DISCONNECTED);
 		wpa_scan_results_free(scan_res);
 		return 0;
@@ -1267,7 +1260,6 @@ static int _wpa_supplicant_event_scan_results(struct wpa_supplicant *wpa_s,
 
 	if (!wpas_driver_bss_selection(wpa_s) &&
 	    bgscan_notify_scan(wpa_s, scan_res) == 1) {
-        wpa_printf(MSG_INFO, "wpas_driver_bss_selection()...");
 		wpa_scan_results_free(scan_res);
 		return 0;
 	}
@@ -1371,7 +1363,6 @@ static void wpa_supplicant_event_scan_results(struct wpa_supplicant *wpa_s,
 		 * interface, do not notify other interfaces to avoid concurrent
 		 * operations during a connection attempt.
 		 */
-        wpa_printf(MSG_INFO, "no scan results.. return");
 		return;
 	}
 
@@ -1379,16 +1370,14 @@ static void wpa_supplicant_event_scan_results(struct wpa_supplicant *wpa_s,
 	 * Check other interfaces to see if they have the same radio-name. If
 	 * so, they get updated with this same scan info.
 	 */
-    if (!wpa_s->driver->get_radio_name) {
-        wpa_printf(MSG_INFO, "no driver->get_radio_name.. return");
+	if (!wpa_s->driver->get_radio_name)
 		return;
-    }
 
 	rn = wpa_s->driver->get_radio_name(wpa_s->drv_priv);
 	if (rn == NULL || rn[0] == '\0')
 		return;
 
-	wpa_dbg(wpa_s, MSG_INFO, "Checking for other virtual interfaces "
+	wpa_dbg(wpa_s, MSG_DEBUG, "Checking for other virtual interfaces "
 		"sharing same radio (%s) in event_scan_results", rn);
 
 	for (ifs = wpa_s->global->ifaces; ifs; ifs = ifs->next) {
@@ -1397,7 +1386,7 @@ static void wpa_supplicant_event_scan_results(struct wpa_supplicant *wpa_s,
 
 		rn2 = ifs->driver->get_radio_name(ifs->drv_priv);
 		if (rn2 && os_strcmp(rn, rn2) == 0) {
-			wpa_printf(MSG_INFO, "%s: Updating scan results from "
+			wpa_printf(MSG_DEBUG, "%s: Updating scan results from "
 				   "sibling", ifs->ifname);
 			_wpa_supplicant_event_scan_results(ifs, data, 0);
 		}
@@ -2739,7 +2728,7 @@ void wpa_supplicant_event(void *ctx, enum wpa_event_type event,
 					wpa_supplicant_req_scan(wpa_s, 1, 0);
 				}
 			} else if (wpa_s->p2p_group_interface != NOT_P2P_GROUP_INTERFACE) {
-				/* If we ASSOC_REJECT's hits threshold, disable the
+				/* If we ASSOC_REJECT's hits threshold, disable the 
 			 	 * network
 			 	 */
 				wpa_printf(MSG_ERROR, "Assoc retry threshold reached. "

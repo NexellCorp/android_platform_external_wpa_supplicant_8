@@ -118,6 +118,11 @@ static void p2p_expire_peers(struct p2p_data *p2p)
 			continue;
 #endif
 
+#ifdef REALTEK_WIFI_VENDOR
+		if (dev->req_config_methods != 0)
+			continue;
+#endif
+
 		p2p_dbg(p2p, "Expiring old peer entry " MACSTR,
 			MAC2STR(dev->info.p2p_device_addr));
 
@@ -739,23 +744,7 @@ int p2p_add_device(struct p2p_data *p2p, const u8 *addr, int freq,
 			freq, msg.ds_params ? *msg.ds_params : -1);
 	}
 	if (scan_res) {
-#ifdef REALTEK_WIFI_VENDOR
-        if(dev->listen_freq) {
-            if(freq == 2412 || freq == 2437 || freq == 2462) {
-                dev->listen_freq = freq;
-            } else {
-                wpa_printf(MSG_INFO, "%s, freq(%d) is not 1,6,11, don't update to listen_freq", __func__, freq);
-            }
-
-            wpa_printf(MSG_INFO, "%s, listen_freq=%d", __func__, dev->listen_freq);
-        } else {
-            wpa_printf(MSG_INFO, "%s, freq -> listen_freq=%d", __func__, freq);
-            dev->listen_freq = freq;
-
-        }
-#else
-        dev->listen_freq = freq;
-#endif
+		dev->listen_freq = freq;
 		if (msg.group_info)
 			dev->oper_freq = freq;
 	}
@@ -781,13 +770,6 @@ int p2p_add_device(struct p2p_data *p2p, const u8 *addr, int freq,
 		wpabuf_free(dev->info.wfd_subelems);
 		dev->info.wfd_subelems = wpabuf_dup(msg.wfd_subelems);
 	}
-
-#ifdef CONFIG_WFD
-	dev->info.wfd_enable = msg.wfd_enable;
-	dev->info.session_avail = msg.session_avail;
-	dev->info.rtsp_ctrlport = msg.rtsp_ctrlport;
-	dev->info.wfd_device_type = msg.wfd_device_type;
-#endif //CONFIG_WFD
 
 	if (scan_res) {
 		p2p_add_group_clients(p2p, p2p_dev_addr, addr, freq,
@@ -2018,10 +2000,6 @@ struct wpabuf * p2p_build_probe_resp_ies(struct p2p_data *p2p)
 	p2p_buf_add_device_info(buf, p2p, NULL);
 	p2p_buf_update_ie_hdr(buf, len);
 
-#ifdef CONFIG_WFD
-	/* WFD IE */
-	p2p_buf_add_wfd_ie(buf);
-#endif
 	return buf;
 }
 
@@ -2238,11 +2216,6 @@ static int p2p_assoc_req_ie_wlan_ap(struct p2p_data *p2p, const u8 *bssid,
 	    (p2p->dev_capab & P2P_DEV_CAPAB_INFRA_MANAGED))
 		p2p_buf_add_p2p_interface(tmp, p2p);
 	p2p_buf_update_ie_hdr(tmp, lpos);
-
-#ifdef CONFIG_WFD
-	/* WFD IE */
-	p2p_buf_add_wfd_ie(tmp);
-#endif
 
 	tmplen = wpabuf_len(tmp);
 	if (tmplen > len)
@@ -2709,11 +2682,11 @@ void p2p_continue_find(struct p2p_data *p2p)
 		/* SD_FAIR_POLICY: We need to give chance to all devices in the device list
 		 * There may be a scenario, where a particular peer device have
 		 * not registered any query response. When we send a SD request to such device,
-		 * no response will be received. And if we continue to get probe responses from that device,
-		 * and if that device happens to be on top in our device list,
-		 * we will always continue to send SD requests always to that peer only.
-		 * We will not be able to send SD requests to other devices in that case.
-		 * This implementation keeps track of last serviced peer device.
+		 * no response will be received. And if we continue to get probe responses from that device, 
+		 * and if that device happens to be on top in our device list, 
+		 * we will always continue to send SD requests always to that peer only. 
+		 * We will not be able to send SD requests to other devices in that case. 
+		 * This implementation keeps track of last serviced peer device. 
 		 * And then takes the next one from the device list, in the next iteration.
 		 */
 		if (p2p->sd_dev_list && p2p->sd_dev_list != &p2p->devices) {
@@ -2932,10 +2905,6 @@ void p2p_scan_ie(struct p2p_data *p2p, struct wpabuf *ies, const u8 *dev_id)
 					      p2p->ext_listen_interval);
 	/* TODO: p2p_buf_add_operating_channel() if GO */
 	p2p_buf_update_ie_hdr(ies, len);
-#ifdef CONFIG_WFD
-	/* WFD IE */
-	p2p_buf_add_wfd_ie(ies);
-#endif
 }
 
 
@@ -3729,10 +3698,7 @@ static struct wpabuf * p2p_build_presence_req(u32 duration1, u32 interval1,
 	len = p2p_buf_add_ie_hdr(req);
 	p2p_buf_add_noa(req, 0, 0, 0, ptr1, ptr2);
 	p2p_buf_update_ie_hdr(req, len);
-#ifdef CONFIG_WFD
-	/* WFD IE */
-	p2p_buf_add_wfd_ie(resp);
-#endif
+
 	return req;
 }
 

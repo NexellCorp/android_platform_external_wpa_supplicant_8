@@ -15,7 +15,7 @@
 #include <fcntl.h>
 #if defined(ANDROID) && !defined(PURE_LINUX)
 #include <cutils/sockets.h>
-#endif /* ANDROID */
+#endif /* defined(ANDROID) && !defined(PURE_LINUX) */
 
 #include "utils/common.h"
 #include "utils/eloop.h"
@@ -310,7 +310,7 @@ wpa_supplicant_ctrl_iface_init(struct wpa_supplicant *wpa_s)
 	priv->sock = android_get_control_socket(addr.sun_path);
 	if (priv->sock >= 0)
 		goto havesock;
-#endif /* ANDROID */
+#endif /* defined(ANDROID) && !defined(PURE_LINUX) */
 	if (os_strncmp(buf, "DIR=", 4) == 0) {
 		dir = buf + 4;
 		gid_str = os_strstr(dir, " GROUP=");
@@ -455,7 +455,7 @@ wpa_supplicant_ctrl_iface_init(struct wpa_supplicant *wpa_s)
 
 #if defined(ANDROID) && !defined(PURE_LINUX)
 havesock:
-#endif /* ANDROID */
+#endif /* defined(ANDROID) && !defined(PURE_LINUX) */
 
 	/*
 	 * Make socket non-blocking so that we don't hang forever if
@@ -773,7 +773,7 @@ wpa_supplicant_global_ctrl_iface_init(struct wpa_global *global)
 			goto havesock;
 		}
 	}
-#endif /* ANDROID */
+#endif /* defined(ANDROID) && !defined(PURE_LINUX) */
 
 	priv->sock = socket(PF_UNIX, SOCK_DGRAM, 0);
 	if (priv->sock < 0) {
@@ -879,9 +879,7 @@ wpa_supplicant_global_ctrl_iface_init(struct wpa_global *global)
 		chmod(ctrl, S_IRWXU);
 	}
 
-#if defined(ANDROID) && !defined(PURE_LINUX)
 havesock:
-#endif
 
 	/*
 	 * Make socket non-blocking so that we don't hang forever if

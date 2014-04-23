@@ -23,7 +23,7 @@
 #include <dirent.h>
 #include <cutils/sockets.h>
 #include "private/android_filesystem_config.h"
-#endif /* ANDROID */
+#endif /* defined(ANDROID) && !defined(PURE_LINUX) */
 
 #include "wpa_ctrl.h"
 #include "common.h"
@@ -163,7 +163,7 @@ try_again:
 		}
 		return ctrl;
 	}
-#endif /* ANDROID */
+#endif /* defined(ANDROID) && !defined(PURE_LINUX) */
 
 	ctrl->dest.sun_family = AF_UNIX;
 	if (os_strncmp(ctrl_path, "@abstract:", 10) == 0) {
@@ -250,7 +250,7 @@ void wpa_ctrl_cleanup(void)
 	}
 	closedir(dir);
 }
-#endif /* ANDROID */
+#endif /* defined(ANDROID) && !defined(PURE_LINUX) */
 
 #else /* CONFIG_CTRL_IFACE_UNIX */
 
