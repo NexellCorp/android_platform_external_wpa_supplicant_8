@@ -5230,7 +5230,7 @@ char * wpa_supplicant_ctrl_iface_process(struct wpa_supplicant *wpa_s,
 
 #ifdef REALTEK_WIFI_VENDOR
 	if(os_strncmp(buf, "PING", 4) != 0)
-		wpa_printf(MSG_INFO, "[CTRL_IFACE]%s: %s", wpa_s->ifname, buf);
+		wpa_printf(MSG_DEBUG, "[CTRL_IFACE]%s: %s", wpa_s->ifname, buf);
 #endif
 
 	if (os_strncmp(buf, WPA_CTRL_RSP, os_strlen(WPA_CTRL_RSP)) == 0 ||
