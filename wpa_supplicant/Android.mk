@@ -48,6 +48,14 @@ L_CFLAGS += -DANDROID_P2P
 L_CFLAGS += -DCONFIG_IGNORE_P2P_GROUP_INTERFACE
 endif
 
+ifeq ($(BOARD_WLAN_DEVICE), esp8089)
+L_CFLAGS += -DWIFI_EAGLE
+L_CFLAGS += -DANDROID_P2P
+CONFIG_DRIVER_HOSTAP=y
+CONFIG_DRIVER_WEXT=y
+CONFIG_DRIVER_NL80211=y
+endif
+
 # Use Android specific directory for control interface sockets
 L_CFLAGS += -DCONFIG_CTRL_IFACE_CLIENT_DIR=\"/data/misc/wifi/sockets\"
 L_CFLAGS += -DCONFIG_CTRL_IFACE_DIR=\"/data/system/wpa_supplicant\"

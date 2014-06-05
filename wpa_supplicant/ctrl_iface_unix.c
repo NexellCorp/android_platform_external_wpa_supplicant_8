@@ -272,9 +272,16 @@ static void wpa_supplicant_ctrl_iface_msg_cb(void *ctx, int level, int global,
 
 	if (wpa_s->ctrl_iface == NULL)
 		return;
+
+#ifdef WIFI_EAGLE
+	wpa_supplicant_ctrl_iface_send(wpa_s->ifname, wpa_s->ctrl_iface->sock,
+				       &wpa_s->ctrl_iface->ctrl_dst,
+				       level, txt, len);
+#else
 	wpa_supplicant_ctrl_iface_send(NULL, wpa_s->ctrl_iface->sock,
 				       &wpa_s->ctrl_iface->ctrl_dst,
 				       level, txt, len);
+#endif
 }
 
 

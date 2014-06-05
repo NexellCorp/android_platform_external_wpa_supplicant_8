@@ -41,6 +41,12 @@ L_CFLAGS += -DREALTEK_WIFI_VENDOR
 L_CFLAGS += -DANDROID_P2P
 endif
 
+ifeq ($(BOARD_WLAN_DEVICE), esp8089)
+L_CFLAGS += -DANDROID_P2P
+L_CFLAGS += -DWIFI_EAGLE
+CONFIG_DRIVER_NL80211=y
+endif
+
 # Use Android specific directory for control interface sockets
 L_CFLAGS += -DCONFIG_CTRL_IFACE_CLIENT_DIR=\"/data/misc/wifi/sockets\"
 L_CFLAGS += -DCONFIG_CTRL_IFACE_DIR=\"/data/system/hostapd\"
