@@ -6,6 +6,8 @@
 
 LOCAL_PATH := $(call my-dir)
 
+ifneq ($(BOARD_WIFI_VENDOR),realtek)
+
 WPA_BUILD_HOSTAPD := false
 ifneq ($(BOARD_HOSTAPD_DRIVER),)
   WPA_BUILD_HOSTAPD := true
@@ -993,3 +995,5 @@ LOCAL_C_INCLUDES := $(INCLUDES)
 include $(BUILD_EXECUTABLE)
 
 endif # ifeq ($(WPA_BUILD_HOSTAPD),true)
+
+endif # ifneq ($(BOARD_WIFI_VENDOR),realtek)
